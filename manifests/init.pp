@@ -50,6 +50,7 @@ class node_deployment (
   $ssh_deploy_privatekey = undef,  # generate
   $ssh_deploy_pubkey = undef,      # generate
   $mongodb_name = undef,           # no database
+  $mongodb_pass = undef,
   $upstream_port = 3000,
   ){
 
@@ -75,7 +76,11 @@ class node_deployment (
     } ->
     class {'::mongodb::client':} ->
     mongodb::db {$mongodb_name:
-      user => $app_name
+      user => $app_name,
+      password => $mongodb_pass ? {
+        undef => generate('/usr/bin/makepasswd'),
+        default => $mongdb_pass
+      }
     }
   }
     # to build node dependancies
