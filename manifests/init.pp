@@ -61,8 +61,7 @@ class node_deployment (
   class { nginx: }
   class {nodejs: 
     manage_repo => true # package more recent than distro
-  }
-
+  } ->
   package {'pm2':
     provider => 'npm',
     ensure => present
@@ -97,7 +96,6 @@ class node_deployment (
     comment => "rh++ web service",
     home => $directory,
     shell => '/bin/bash',
-    purge_ssh_keys => true,
     managehome => true,
   }
 
@@ -124,7 +122,6 @@ class node_deployment (
   }
 
   nginx::resource::vhost{$url:
-    require => Ssl::Cert[$ssl_host],
     ssl => $ssl,
     listen_port => $port,
     ssl_port => $port,
