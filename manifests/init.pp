@@ -43,8 +43,8 @@ class node_deployment (
   $ssl = false,     
   $ssl_cert = undef,               # error if none && ssl
   $ssl_key = undef,                # idem
-  $username = $name,
-  $app_name = $name,
+  $username = $app_name,
+  $app_name,
   $ssh_login_keytype = undef,
   $ssh_login_pubkey = undef,
   $ssh_deploy_privatekey = undef,  # generate
