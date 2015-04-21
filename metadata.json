@@ -1,0 +1,14 @@
+{
+  "name": "n7-node_deployment",
+  "version": "0.1.0",
+  "author": "Pierre Gambarotto <pierre.gambarotto@enseeiht.fr>",
+  "summary": "Deploys a node.js application with nginx and pm2. Optionnaly installs a mongodb database.",
+  "license": "MIT",
+  "source": "git@github.com:PierreGambarotto/n7-node_deployment.git",
+  "project_page": "https://github.com/PierreGambarotto/n7-node_deployment",
+  "issues_url": "https://github.com/PierreGambarotto/n7-node_deployment",
+  "dependencies": [
+    {"name":"puppetlabs-stdlib","version_requirement":">= 1.0.0"}
+  ]
+}
+
