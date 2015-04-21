@@ -47,8 +47,9 @@ class node_deployment (
   $app_name,
   $ssh_login_keytype = undef,
   $ssh_login_pubkey = undef,
-  $ssh_deploy_privatekey = undef,  # generate
-  $ssh_deploy_pubkey = undef,      # generate
+  $ssh_deploy_privatekey = undef,  
+  $ssh_deploy_pubkey = undef,
+  $ssh_deploy_keytype = 'id_rsa',
   $mongodb_name = undef,           # no database
   $mongodb_pass = undef,
   $upstream_port = 3000,
@@ -107,6 +108,23 @@ class node_deployment (
     }
   }
 
+  if ($ssh_deploy_privatekey){
+    file{"${directory}/.ssh/${ssh_deploy_keytype}":
+      owner => $username,
+      group => $username,
+      mode => 0600,
+      content => $ssh_deploy_privatekey
+    }
+  }
+
+  if ($ssh_deploy_pubkey){
+    file{"${directory}/.ssh/${ssh_deploy_keytype}.pub":
+      owner => $username,
+      group => $username,
+      mode => 0644,
+      content => $ssh_deploy_pubkey
+    }
+  }
   if ($ensure_service){
     exec{"generates pm2 init script for user ${username}":
       require => Package[pm2],
