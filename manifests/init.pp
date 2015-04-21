@@ -50,6 +50,7 @@ class node_deployment (
   $ssh_deploy_privatekey = undef,  
   $ssh_deploy_pubkey = undef,
   $ssh_deploy_keytype = 'id_rsa',
+  $ssh_deploy_site_hash = undef,
   $mongodb_name = undef,           # no database
   $mongodb_pass = undef,
   $upstream_port = 3000,
@@ -123,6 +124,15 @@ class node_deployment (
       group => $username,
       mode => 0644,
       content => $ssh_deploy_pubkey
+    }
+  }
+
+  if ($ssh_deploy_site_hash){
+    file{"${directory}/.ssh/known_hosts":
+      owner => $username,
+      group => $username,
+      mode => 0644,
+      content => $ssh_deploy_site_hash
     }
   }
   if ($ensure_service){
