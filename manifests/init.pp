@@ -29,16 +29,15 @@
 #
 # === Authors
 #
-# Author Name <author@domain.com>
+# Pierre Gambarotto <pierre.gambarotto@enseeiht.fr>
 #
 # === Copyright
 #
-# Copyright 2015 Your name here, unless otherwise noted.
+# Copyright 2015 Pierre Gambarotto
 #
-class node_deployment {
-  define application(              # default value
+class node_deployment (   
   $ensure_service = false,    
-  $directory = "/usr/local/${name}",
+  $directory = "/usr/local/${app_name}",
   $url = $fqdn,     
   $port = 80,       
   $ssl = false,     
@@ -46,17 +45,86 @@ class node_deployment {
   $ssl_key = undef,                # idem
   $username = $name,
   $app_name = $name,
-  $ssh_login_type = undef,
+  $ssh_login_keytype = undef,
   $ssh_login_pubkey = undef,
   $ssh_deploy_privatekey = undef,  # generate
   $ssh_deploy_pubkey = undef,      # generate
   $mongodb_name = undef,           # no database
   $upstream_port = 3000,
-    ){
+  ){
 
-    notify {debug:
-      message => "url: ${url} username: ${username} app_name: ${app_name}"
-    }
-    
+  package{git:
+    ensure => present
   }
+
+  class { nginx: }
+  class {nodejs: 
+    manage_repo => true # package more recent than distro
+  }
+
+  package {'pm2':
+    provider => 'npm',
+    ensure => present
+  }
+  if ($mongodb_name){
+    class{'::mongodb::globals':
+      manage_package_repo => true,
+    } ->
+    class {'::mongodb::server':
+      # todo : enable auth
+    } ->
+    class {'::mongodb::client':} ->
+    mongodb::db {$mongodb_name:
+      user => $app_name
+    }
+  }
+    # to build node dependancies
+
+  $dependancies = [build-essential, python]
+  package{$dependancies:
+    ensure => present
+  }
+
+
+  # user to run the service
+  user{$username:
+    ensure => present,
+    comment => "rh++ web service",
+    home => $directory,
+    shell => '/bin/bash',
+    purge_ssh_keys => true,
+    managehome => true,
+  }
+
+  if ($ssh_login_keytype and $ssh_login_pubkey){
+    ssh_authorized_key{"manager of ${app_name}":
+      user => $username,
+      type => $ssh_login_keytype,
+      key => $ssh_login_pubkey
+    }
+  }
+
+  if ($ensure_service){
+    exec{"generates pm2 init script for user ${username}":
+      require => Package[pm2],
+      provider => shell,
+      command => "/usr/bin/pm2 startup -s --no-daemon -u ${username}",
+      creates => "/etc/init.d/pm2-init.sh"
+    }
+  }
+
+  # nginx host as proxy
+  nginx::resource::upstream {$app_name:
+    members => [ "localhost:${upstream_port}" ]
+  }
+
+  nginx::resource::vhost{$url:
+    require => Ssl::Cert[$ssl_host],
+    ssl => $ssl,
+    listen_port => $port,
+    ssl_port => $port,
+    proxy => "http://${app_name}",
+    ssl_cert => $ssl_cert,
+    ssl_key => $ssl_key
+  }    
 }
