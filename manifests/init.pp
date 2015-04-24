@@ -91,7 +91,7 @@ class node_deployment (
     ensure => present
   }
 
-  pm2::aplication{$app_name:
+  pm2::application{$app_name:
     username => $username,
     directory => $directory,
     ensure_service => $ensure_service
