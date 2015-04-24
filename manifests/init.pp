@@ -64,10 +64,10 @@ class node_deployment (
   class {nodejs: 
     manage_repo => true # package more recent than distro
   } ->
-  package {'pm2':
-    provider => 'npm',
-    ensure => present
+  class{'pm2':
+    version => 'git+https://github.com/PierreGambarotto/PM2.git'  
   }
+
   if ($mongodb_name){
     class{'::mongodb::globals':
       manage_package_repo => true,
@@ -91,22 +91,10 @@ class node_deployment (
     ensure => present
   }
 
-
-  # user to run the service
-  user{$username:
-    ensure => present,
-    comment => "rh++ web service",
-    home => $directory,
-    shell => '/bin/bash',
-    managehome => true,
-  }
-
-  if ($ssh_login_keytype and $ssh_login_pubkey){
-    ssh_authorized_key{"manager of ${app_name}":
-      user => $username,
-      type => $ssh_login_keytype,
-      key => $ssh_login_pubkey
-    }
+  pm2::aplication{$app_name:
+    username => $username,
+    directory => $directory,
+    ensure_service => $ensure_service
   }
 
   if ($ssh_deploy_privatekey){
@@ -133,14 +121,6 @@ class node_deployment (
       group => $username,
       mode => 0644,
       content => $ssh_deploy_site_hash
-    }
-  }
-  if ($ensure_service){
-    exec{"generates pm2 init script for user ${username}":
-      require => Package[pm2],
-      provider => shell,
-      command => "/usr/bin/pm2 startup -s --no-daemon -u ${username}",
-      creates => "/etc/init.d/pm2-init.sh"
     }
   }
 
