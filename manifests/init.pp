@@ -97,20 +97,13 @@ class node_deployment (
     ensure_service => $ensure_service,
     ssh_login_keytype => $ssh_login_keytype,
     ssh_login_pubkey => $ssh_login_pubkey
-  } ->
-  file{"${directory}/.ssh":
-    ensure => directory,
-    owner => $username,
-    group => $username,
-    mode => 0700
-  }  
-
+  }
   if ($ssh_deploy_privatekey){
     file{"${directory}/.ssh/${ssh_deploy_keytype}":
       owner => $username,
       group => $username,
       mode => 0600,
-      require => File["${directory}/.ssh"],
+      require => Pm2::Application["${app_name}"],
       content => $ssh_deploy_privatekey
     }
   }
@@ -120,7 +113,7 @@ class node_deployment (
       owner => $username,
       group => $username,
       mode => 0644,
-      require => File["${directory}/.ssh"],
+      require => Pm2::Application["${app_name}"],
       content => $ssh_deploy_pubkey
     }
   }
