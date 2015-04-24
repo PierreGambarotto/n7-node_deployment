@@ -102,6 +102,7 @@ class node_deployment (
       owner => $username,
       group => $username,
       mode => 0600,
+      require => User[$username],
       content => $ssh_deploy_privatekey
     }
   }
@@ -111,6 +112,7 @@ class node_deployment (
       owner => $username,
       group => $username,
       mode => 0644,
+      require => User[$username],
       content => $ssh_deploy_pubkey
     }
   }
@@ -120,6 +122,7 @@ class node_deployment (
       owner => $username,
       group => $username,
       mode => 0644,
+      require => User[$username],
       content => $ssh_deploy_site_hash
     }
   }
